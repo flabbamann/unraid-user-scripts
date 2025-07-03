@@ -1,0 +1,44 @@
+#!/bin/bash
+#name=Restic backup
+#description=This script creates backups using restic. Edit variables in script to fit your situation.
+#arrayStarted=true
+
+############
+# Change the following variables
+#
+# Init repo first by running `restic init --repo /path/to/your/repo` and entering a password.
+# Store that password in a file
+############
+RESTIC_REPO="/path/to/your/repo"
+SOURCE_DIRS="/mnt/user/share1/ /mnt/user/share2"
+PASSWORD_FILE="/path/to/your/password.txt"
+############
+
+timestamp()
+{
+  date "+%Y-%m-%d %T"
+}
+
+echo "`timestamp` Starting restic backup..."
+
+for dir in $SOURCE_DIRS
+do
+  echo "`timestamp` Backing up $dir"
+  result=`restic -r $RESTIC_REPO -p $PASSWORD_FILE backup $dir --skip-if-unchanged --quiet --json 2>&1`
+  if [ "$?" -ne 0 ]; then
+    message=`echo $result | jq '.message'`
+    echo $message
+      /usr/local/emhttp/webGui/scripts/notify -e "Problem backing up $dir" -i warning -s "restic" -d "$message"
+      exit 1
+  else
+    echo $result | jq
+  fi
+done
+
+echo "`timestamp` ...done"
+
+echo "`timestamp` Snapshots:"
+restic -r $RESTIC_REPO -p $PASSWORD_FILE snapshots --group-by path
+restic -r $RESTIC_REPO -p $PASSWORD_FILE stats --mode raw-data
+
+echo "`timestamp` restic backup finished"

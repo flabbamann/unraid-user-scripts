@@ -1,0 +1,6 @@
+#!/bin/bash
+#name=Nextcloud generate previews
+#description=Run occ command to generate previews. Should be run every 15 minutes via cron.
+#arrayStarted=true
+
+docker exec nextcloud occ preview:pre-generate
