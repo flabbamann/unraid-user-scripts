@@ -10,7 +10,7 @@
 # Store that password in a file
 ############
 RESTIC_REPO="/path/to/your/repo"
-SOURCE_DIRS="/mnt/user/share1/ /mnt/user/share2"
+SOURCE_DIRS=("/mnt/user/share1/ --exclude='**xyz'" "/mnt/user/share2")
 PASSWORD_FILE="/path/to/your/password.txt"
 ############
 
@@ -21,7 +21,7 @@ timestamp()
 
 echo "`timestamp` Starting restic backup..."
 
-for dir in $SOURCE_DIRS
+for dir in "${SOURCE_DIRS[@]}"
 do
   echo "`timestamp` Backing up $dir"
   result=`restic -r $RESTIC_REPO -p $PASSWORD_FILE backup $dir --skip-if-unchanged --quiet --json 2>&1`
