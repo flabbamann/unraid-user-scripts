@@ -1,0 +1,58 @@
+#!/bin/bash
+#name=Restic forget and check
+#description=This script deletes old restic backups and checks the repo for integrity and consistency.
+#arrayStarted=true
+
+############
+# Change the following variables
+#
+############
+RESTIC_REPO="/path/to/your/repo"
+PASSWORD_FILE="/path/to/your/password.txt"
+RESTIC_KEEP="--keep-daily 14 --keep-weekly 8 --keep-monthly 12"
+############
+
+timestamp()
+{
+  date "+%Y-%m-%d %T"
+}
+
+echo "`timestamp` Removing old snapshots..."
+
+result=`restic -r $RESTIC_REPO -p $PASSWORD_FILE forget $RESTIC_KEEP --prune --quiet --json  2>&1`
+if [ "$?" -ne 0 ]; then
+  message=`echo $result | jq '.message'`
+  echo $message
+    /usr/local/emhttp/webGui/scripts/notify -e "Problem removing old snapshots" -i warning -s "restic" -d "$message"
+    exit 1
+else
+  i=0
+  length=`echo $result | jq length`
+  while [ $i -lt $length ]; do
+    path=`echo $result | jq ".[$i].paths[0]"`
+    removed_snapshots=`echo $result | jq ".[$i].remove | length"`
+    echo "`timestamp` Removed snapshots from $path: $removed_snapshots"
+    ((i++))
+  done
+fi
+
+echo "`timestamp` ...done"
+
+echo "`timestamp` Checking repository..."
+result=`restic -r $RESTIC_REPO -p $PASSWORD_FILE check --read-data --quiet --json 2>&1`
+if [ "$?" -ne 0 ]; then
+  message=`echo $result | jq '.message'`
+  echo $message
+    /usr/local/emhttp/webGui/scripts/notify -e "Repository check found issues!" -i warning -s "restic" -d "$message"
+    exit 1
+else
+  echo $result | jq
+fi
+
+echo "`timestamp` ...done"
+
+echo "`timestamp` Remaining snapshots:"
+restic -r $RESTIC_REPO -p $PASSWORD_FILE snapshots --group-by path
+restic -r $RESTIC_REPO -p $PASSWORD_FILE stats --mode raw-data
+
+echo "`timestamp` restic forget and check finished"

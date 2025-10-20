@@ -26,3 +26,24 @@ restic init --repo /path/to/your/repo
 ```
 Save your password to a file and adjust the variables in the script to your needs.
 I run this on a daily schedule.
+### Restore
+To restore single files from a backup, you can mount your backup repo like this:
+```bash
+ln -s /usr/bin/fusermount3 /usr/bin/fusermount
+mkdir /mnt/bkp
+restic -r /path/to/your/repo -p /path/to/your/password.txt mount /mnt/bkp
+```
+
+## restic_forget_and_check
+Drops old snapshots and prunes data from the repo that was only referenced by dropped snapshots.
+After this a check is run to make sure there is nothing wrong with the repo.
+Depending on your repo size and hardware both operations can take a long time. 
+I run this on a monthly schedule.
+*Make sure no backups are planned during the forget and check run.*
+
+### unlock
+In case an operation was interrupted your repository may be locked. To unlock run the following command. 
+⚠️*Make sure you are not unnecessarily killing a running backup job!*
+```bash
+restic -r /path/to/your/repo -p /path/to/your/password.txt unlock
+```
