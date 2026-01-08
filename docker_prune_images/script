@@ -1,0 +1,7 @@
+#!/bin/bash
+#name=Docker prune images
+#description=This script removes all images not referenced by any container to free up disk space.
+
+docker image prune -af
+
+echo Finished

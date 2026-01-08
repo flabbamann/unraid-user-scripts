@@ -6,6 +6,9 @@ To use a script copy the directory to `config/plugins/user.scripts/scripts/` on 
 >[!WARNING]
 >These scripts work for me and my use cases. Inspect the code and don't run any scripts on important data without testing!
 
+## docker_prune_images
+Removes all images not referenced by any container, to free up disk space (docker.img). In the docker tab of the WebGUI these images show up as "orphan images" if advanced view is enabled. For me this script works better than the `delete_dangling_images` script that comes with User Scripts plugin.
+
 ## nextcloud_generate_previews
 Runs a background job via occ command to pre-generate previews. Works with [linuxserver/nextcloud](https://github.com/linuxserver/docker-nextcloud), not tested with other container images.
 
